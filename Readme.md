@@ -1,7 +1,6 @@
 
 
 # RepoLingo: GitHub Repository Analysis Tool
-==============================================
 
 ## Overview
 RepoLingo is a Streamlit application designed to extract, analyze, and summarize GitHub repositories in multiple languages. It utilizes the Together AI API for querying repository content and provides features for downloading responses.
