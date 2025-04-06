@@ -1,12 +1,12 @@
 import streamlit as st
-import subprocess
 import json
 import os
-import tempfile
 import requests
-from pathlib import Path
+from gitingest import ingest
+import asyncio
+from gitingest import ingest_async
 
-st.set_page_config(page_title="RepoLingo", page_icon="📦", layout="wide")
+st.set_page_config(page_title="RepoLingua", page_icon="📦", layout="wide")
 
 # Languages for summarization and queries
 LANGUAGES = {
@@ -26,9 +26,9 @@ LANGUAGES = {
 
 # Predefined questions
 PREDEFINED_QUESTIONS = [
-    "Suggest code improvements",
     "Summarize repository",
     "How to run the code",
+    "Suggest code improvements",
     "Security vulnerabilities and fixes",
     "Custom question"
 ]
@@ -41,67 +41,38 @@ MODELS = [
     "meta-llama/Llama-3.3-70B-Instruct-Turbo"
 ]
 
-def run_command(command):
-    """Run a shell command and return its output."""
-    try:
-        result = subprocess.run(command, check=True, text=True, capture_output=True, shell=True)
-        return result.stdout
-    except subprocess.CalledProcessError as e:
-        st.error(f"Command failed with error: {e.stderr}")
-        return None
-
-def ensure_git_repo_parser_installed():
-    """Ensure git-repo-parser is installed silently."""
-    # Create package.json if it doesn't exist
-    if not os.path.exists('package.json'):
-        run_command('npm init -y')
-    
-    # Check if git-repo-parser is already installed
-    if not os.path.exists('node_modules/git-repo-parser'):
-        run_command('npm install git-repo-parser')
-
 def parse_repository(repo_url, format_type):
-    """Parse repository using git-repo-parser."""
-    # Ensure git-repo-parser is installed
-    ensure_git_repo_parser_installed()
-    
-    with tempfile.TemporaryDirectory() as temp_dir:
-        # Create the Node.js script
-        script_path = os.path.join(temp_dir, "parse_repo.js")
-        script_type = "scrapeRepositoryToJson" if format_type == "JSON" else "scrapeRepositoryToPlainText"
-        output_file = os.path.join(temp_dir, "files.json" if format_type == "JSON" else "files.txt")
-        
-        with open(script_path, 'w') as f:
-            f.write(f"""
-const {{ {script_type} }} = require('{os.path.abspath("node_modules/git-repo-parser")}');
-const fs = require('fs');
-
-async function parseRepo() {{
-    try {{
-        const result = await {script_type}('{repo_url}');
-        fs.writeFileSync('{output_file.replace(os.sep, "/")}', 
-                       {format_type == "JSON" and "JSON.stringify(result, null, 2)" or "result"});
-        console.log('Repository parsed successfully');
-    }} catch (error) {{
-        console.error('Error parsing repository:', error);
-        process.exit(1);
-    }}
-}}
-
-parseRepo();
-            """)
-        
-        with st.spinner(f"Parsing repository {repo_url}..."):
-            command = f"node {script_path}"
-            run_command(command)
+    """Parse repository using gitingest."""
+    with st.spinner(f"Parsing repository {repo_url}..."):
+        try:
+            # Use synchronous version for simplicity
+            summary, tree, content = ingest(repo_url)
             
-            if os.path.exists(output_file):
-                with open(output_file, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                return content
+            if format_type == "JSON":
+                # Create a JSON structure that includes all data
+                result = {
+                    "summary": summary,
+                    "tree": tree,
+                    "content": content
+                }
+                return json.dumps(result, indent=2)
             else:
-                st.error("Failed to generate output file.")
-                return None
+                # Create a plain text representation
+                text_output = f"# Repository Summary\n{summary}\n\n# File Tree\n"
+                
+                # Format the tree structure
+                for path, info in tree.items():
+                    text_output += f"- {path} ({info.get('type', 'file')})\n"
+                
+                text_output += "\n# File Contents\n"
+                for path, file_content in content.items():
+                    text_output += f"\n## {path}\n```\n{file_content}\n```\n"
+                
+                return text_output
+                
+        except Exception as e:
+            st.error(f"Error parsing repository: {str(e)}")
+            return None
 
 def query_repository(repo_content, question, language="English", model="meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8", temperature=0.3, max_tokens=1500):
     """Query repository content using Together AI API."""
@@ -124,8 +95,6 @@ def query_repository(repo_content, question, language="English", model="meta-lla
             content_str = repo_content
     else:
         content_str = repo_content
-    
-    
     
     prompt = f"""<s>[INST] <<SYS>> You are a senior developer assistant. Analyze this codebase and answer the following question in {language}. IMPORTANT: You must answer the question in {language}.<</SYS>>
 
@@ -235,7 +204,7 @@ def main():
                 except json.JSONDecodeError:
                     st.text_area("Raw Content", st.session_state.repo_content, height=preview_height)
             else:
-                st.text_area("Raw Content", st.session_state.repo_content, height=preview_height)
+                st.markdown(st.session_state.repo_content)
         
         # Download button
         file_extension = "json" if st.session_state.format_type == "JSON" else "txt"
