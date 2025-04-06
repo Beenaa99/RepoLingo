@@ -168,7 +168,7 @@ def main():
         
         # Add "Built with Llama" text at the bottom of the sidebar
         st.markdown("---")  # Add a separator
-        st.markdown("**Built with Llama**")
+        st.markdown("**Built with Llama 4**")
     
     # Main input area
     col1, col2 = st.columns([3, 1])
