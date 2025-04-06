@@ -6,7 +6,7 @@ from gitingest import ingest
 import asyncio
 from gitingest import ingest_async
 
-st.set_page_config(page_title="RepoLingua", page_icon="📦", layout="wide")
+st.set_page_config(page_title="RepoLingo", page_icon="📦", layout="wide")
 
 # Languages for summarization and queries
 LANGUAGES = {
@@ -119,7 +119,7 @@ Provide output in Markdown format with clear section headers where appropriate. 
             return None
 
 def main():
-    st.title("RepoLingua")
+    st.title("RepoLingo")
     st.write("Extract, analyze and summarize GitHub repositories in multiple languages")
     
     # Check for Together API key
@@ -165,6 +165,10 @@ def main():
             value=st.session_state.temperature,
             step=0.1
         )
+        
+        # Add "Built with Llama" text at the bottom of the sidebar
+        st.markdown("---")  # Add a separator
+        st.markdown("**Built with Llama**")
     
     # Main input area
     col1, col2 = st.columns([3, 1])
