@@ -14,15 +14,15 @@ LANGUAGES = {
     "Spanish": "es",
     "French": "fr",
     "German": "de",
-    "Chinese": "zh",
+    "Italian": "it",
     "Hindi": "hi",
-    "Urdu": "ur",
     "Vietnamese": "vi",
     "Thai": "th",
-    "Japanese": "ja",
+    "Tagalog": "tg",
     "Arabic": "ar",
+    "Portuguese": "pr"
 }
-
+ 
 # Predefined questions
 PREDEFINED_QUESTIONS = [
     "Summarize repository",
