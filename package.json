@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "git-repo-parser": "^2.0.7"
+  }
+}
