@@ -95,7 +95,7 @@ Repository Structure:
 
 Question: {question}
 
-Provide output in Markdown format with clear section headers where appropriate. [/INST]"""
+Provide output in Markdown format with clear section headers where appropriate. IMPORTANT: You must answer the question in {language}. [/INST]"""
 
     payload = {
         "model": model,
