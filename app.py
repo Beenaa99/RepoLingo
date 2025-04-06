@@ -11,7 +11,6 @@ st.set_page_config(page_title="RepoLingua", page_icon="📦", layout="wide")
 # Languages for summarization and queries
 LANGUAGES = {
     "English": "en",
-    "Korean": "ko",
     "Spanish": "es",
     "French": "fr",
     "German": "de",
@@ -51,20 +50,13 @@ def parse_repository(repo_url, format_type):
             if format_type == "JSON":
                 # Create a JSON structure that includes all data
                 result = {
-                    "summary": summary,
-                    "tree": tree,
+                    
                     "content": content
                 }
                 return json.dumps(result, indent=2)
             else:
                 # Create a plain text representation
-                text_output = f"# Repository Summary\n{summary}\n\n# File Tree\n"
-                
-                # Format the tree structure
-                for path, info in tree.items():
-                    text_output += f"- {path} ({info.get('type', 'file')})\n"
-                
-                text_output += "\n# File Contents\n"
+                text_output = f"# File Contents\n"
                 for path, file_content in content.items():
                     text_output += f"\n## {path}\n```\n{file_content}\n```\n"
                 
@@ -181,7 +173,7 @@ def main():
         repo_url = st.text_input("GitHub Repository URL", placeholder="https://github.com/username/repo-name")
     
     with col2:
-        format_type = st.selectbox("Format", ["JSON", "Text"])
+        format_type = st.selectbox("Format", ["JSON"])
     
     if st.button("Parse Repository", disabled=not repo_url):
         content = parse_repository(repo_url, format_type)
@@ -195,7 +187,7 @@ def main():
     if 'repo_content' in st.session_state:
         st.subheader("Repository Content Preview")
         
-        with st.expander("Preview", expanded=True):
+        with st.expander("Preview", expanded=False):
             preview_height = 300  # Fixed height preview with scrolling
             if st.session_state.format_type == "JSON":
                 try:
