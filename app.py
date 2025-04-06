@@ -137,6 +137,10 @@ def main():
     # API key and model settings
     with st.sidebar:
         st.header("Settings")
+        # Add "Built with Llama" text at the bottom of the sidebar
+        st.markdown("---")  # Add a separator
+        st.markdown("**Built with Llama 4**")
+        st.markdown("---")  # Add a separator
         api_key = st.text_input("Together API Key", 
                               value=st.session_state.together_api_key,
                               type="password")
@@ -166,9 +170,7 @@ def main():
             step=0.1
         )
         
-        # Add "Built with Llama" text at the bottom of the sidebar
-        st.markdown("---")  # Add a separator
-        st.markdown("**Built with Llama 4**")
+        
     
     # Main input area
     col1, col2 = st.columns([3, 1])
